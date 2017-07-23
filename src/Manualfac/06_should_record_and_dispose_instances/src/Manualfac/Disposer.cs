@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Manualfac
 {
@@ -9,15 +12,20 @@ namespace Manualfac
         /*
          * The disposer is used for disposing all disposable items added when it is disposed.
          */
-
+        private Stack<object> items = new Stack<object>();
         public void AddItemsToDispose(object item)
         {
-            throw new NotImplementedException();
+            if(item == null) throw new ArgumentNullException(nameof(item));
+            items.Push(item);
         }
 
         protected override void Dispose(bool disposing)
         {
-            throw new NotImplementedException();
+            while (disposing && items.Any())
+            {
+                var item = items.Pop();
+                if (item is IDisposable) ((IDisposable)item).Dispose();
+            }
         }
 
         #endregion
