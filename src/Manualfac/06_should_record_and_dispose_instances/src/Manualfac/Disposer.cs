@@ -15,17 +15,18 @@ namespace Manualfac
         private Stack<object> items = new Stack<object>();
         public void AddItemsToDispose(object item)
         {
-            if(item == null) throw new ArgumentNullException(nameof(item));
             if(item is IDisposable)items.Push(item);
         }
 
         protected override void Dispose(bool disposing)
         {
-            while (disposing && items.Any())
+            if (!disposing) return;
+            while (items.Any())
             {
                 var item = items.Pop();
-                if (item is IDisposable) ((IDisposable)item).Dispose();
+                (item as IDisposable)?.Dispose();
             }
+
             items = null;
         }
 
