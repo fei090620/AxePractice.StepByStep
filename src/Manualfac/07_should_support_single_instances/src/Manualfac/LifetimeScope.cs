@@ -25,11 +25,7 @@ namespace Manualfac
 
             #region Please initialize root scope
 
-            while (parent != null)
-            {
-                RootScope = parent;
-                parent = parent.RootScope;
-            }
+            RootScope = parent;
 
             #endregion
         }
@@ -105,8 +101,11 @@ namespace Manualfac
              */
 
             ComponentRegistration registration;
-            componentRegistry.TryGetRegistration(service, out registration);
-            if(registration == null) throw new DependencyResolutionException(nameof(registration));
+            if (!componentRegistry.TryGetRegistration(service, out registration))
+            {
+                throw new DependencyResolutionException(nameof(registration));
+            }
+
             return registration;
 
             #endregion

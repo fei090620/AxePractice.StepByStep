@@ -12,7 +12,14 @@ namespace Manualfac
              * This class will always create and share instaces in root scope.
              */
 
-            return mostNestedLifetimeScope.RootScope ?? mostNestedLifetimeScope;
+            ILifetimeScope rootScop = mostNestedLifetimeScope;
+            while (mostNestedLifetimeScope != null)
+            {
+                rootScop = mostNestedLifetimeScope;
+                mostNestedLifetimeScope = mostNestedLifetimeScope.RootScope;
+            }
+
+            return rootScop;
 
             #endregion
         }
