@@ -18,36 +18,45 @@ namespace Manualfac
 
         public void Register(ComponentRegistration registration)
         {
-            if (registration == null) { throw new ArgumentNullException(nameof(registration)); }
-            serviceInfos[registration.Service] = registration;
+            lock (syncObj)
+            {
+                if (registration == null) { throw new ArgumentNullException(nameof(registration)); }
+                serviceInfos[registration.Service] = registration;
+            }
         }
 
         public void RegisterSource(IRegistrationSource source)
         {
-            if (source == null) { throw new ArgumentNullException(nameof(source)); }
-            sources.Add(source);
+            lock (syncObj)
+            {
+                if (source == null) { throw new ArgumentNullException(nameof(source)); }
+                sources.Add(source);
+            }
         }
 
         public bool TryGetRegistration(Service service, out ComponentRegistration registration)
         {
-            if (serviceInfos.ContainsKey(service))
+            lock (syncObj)
             {
-                registration = serviceInfos[service];
+                if (serviceInfos.ContainsKey(service))
+                {
+                    registration = serviceInfos[service];
+                    return true;
+                }
+
+                ComponentRegistration sourceCreatedRegistration = sources
+                    .Select(s => s.RegistrationFor(service))
+                    .FirstOrDefault(cr => cr != null);
+                if (sourceCreatedRegistration == null)
+                {
+                    registration = null;
+                    return false;
+                }
+
+                Register(sourceCreatedRegistration);
+                registration = sourceCreatedRegistration;
                 return true;
             }
-
-            ComponentRegistration sourceCreatedRegistration = sources
-                .Select(s => s.RegistrationFor(service))
-                .FirstOrDefault(cr => cr != null);
-            if (sourceCreatedRegistration == null)
-            {
-                registration = null;
-                return false;
-            }
-
-            Register(sourceCreatedRegistration);
-            registration = sourceCreatedRegistration;
-            return true;
         }
     }
 }

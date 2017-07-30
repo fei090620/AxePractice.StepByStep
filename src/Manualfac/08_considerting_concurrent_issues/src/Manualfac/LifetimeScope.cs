@@ -25,10 +25,13 @@ namespace Manualfac
 
         public LifetimeScope(ComponentRegistry componentRegistry, ILifetimeScope parent)
         {
-            if (componentRegistry == null) { throw new ArgumentNullException(nameof(componentRegistry));}
+            lock (syncObj)
+            {
+                if (componentRegistry == null) { throw new ArgumentNullException(nameof(componentRegistry)); }
 
-            this.componentRegistry = componentRegistry;
-            RootScope = parent?.RootScope ?? this;
+                this.componentRegistry = componentRegistry;
+                RootScope = parent?.RootScope ?? this;
+            }
         }
 
         public object ResolveComponent(Service service)
@@ -44,24 +47,27 @@ namespace Manualfac
 
         public object GetCreateShare(ComponentRegistration registration)
         {
-            if (registration.Sharing == InstanceSharing.Shared)
+            lock (syncObj)
             {
-                object component;
-                if (sharedInstances.TryGetValue(registration.Service, out component))
+                if (registration.Sharing == InstanceSharing.Shared)
                 {
-                    return component;
+                    object component;
+                    if (sharedInstances.TryGetValue(registration.Service, out component))
+                    {
+                        return component;
+                    }
                 }
+
+                object instance = registration.Activator.Activate(this);
+                Disposer.AddItemsToDispose(instance);
+
+                if (registration.Sharing == InstanceSharing.Shared)
+                {
+                    sharedInstances.Add(registration.Service, instance);
+                }
+
+                return instance;
             }
-
-            object instance = registration.Activator.Activate(this);
-            Disposer.AddItemsToDispose(instance);
-
-            if (registration.Sharing == InstanceSharing.Shared)
-            {
-                sharedInstances.Add(registration.Service, instance);
-            }
-
-            return instance;
         }
 
         public ILifetimeScope BeginLifetimeScope()
@@ -82,12 +88,15 @@ namespace Manualfac
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            lock (syncObj)
             {
-                Disposer.Dispose();
-            }
+                if (disposing)
+                {
+                    Disposer.Dispose();
+                }
 
-            base.Dispose(disposing);
+                base.Dispose(disposing);
+            }
         }
     }
 }
