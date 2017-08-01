@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace Manualfac
 {
@@ -13,7 +14,8 @@ namespace Manualfac
 
         public void Dispose()
         {
-            if (disposedStatus == HaveBeenDisposed)
+            int prevlue = Interlocked.Exchange(ref disposedStatus, HaveBeenDisposed);
+            if (prevlue == HaveBeenDisposed)
             {
                 return;
             }
@@ -27,6 +29,11 @@ namespace Manualfac
         {
         }
 
-        protected bool IsDisposed => disposedStatus == HaveBeenDisposed;
+        protected bool IsDisposed {
+        get {
+            Interlocked.MemoryBarrier(); // get lastesd value
+            return disposedStatus == HaveBeenDisposed;
+        }
     }
+}
 }
