@@ -13,14 +13,21 @@ namespace Manualfac.LocalApiIntegration
          * 
          * You can add a public/internal constructor and non-public fields if needed.
          */
+
+        private ILifetimeScope root;
+        public ManualfacDependencyScope(ILifetimeScope root)
+        {
+            this.root = root;
+        }
+
         public void Dispose()
         {
-            throw new NotImplementedException();
+            root.Disposer.Dispose();
         }
 
         public object GetService(Type type)
         {
-            throw new NotImplementedException();
+            return root.Resolve(type);
         }
 
         #endregion

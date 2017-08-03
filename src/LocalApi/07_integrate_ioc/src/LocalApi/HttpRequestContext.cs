@@ -25,14 +25,21 @@ namespace LocalApi
          * 
          * You can create non-public fields if needed.
          */
+
+        private IDependencyScope scop;
         public IDependencyScope GetDependencyScope()
         {
-            throw new NotImplementedException();
+            if (scop == null)
+            {
+                scop = Configuration.DependencyResolver.BeginScope();
+            }
+
+            return scop;
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            scop.Dispose();
         }
 
         #endregion
