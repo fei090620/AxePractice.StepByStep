@@ -9,9 +9,8 @@ namespace StreamingFacts
 
         public FixedLengthStream(long length)
         {
-            Length = length <= 0
-                ? throw new ArgumentOutOfRangeException(nameof(length))
-                : length;
+            if (length <= 0) throw new ArgumentOutOfRangeException(nameof(length));
+            Length = length;
         }
 
         public override void Flush()
@@ -39,7 +38,7 @@ namespace StreamingFacts
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (buffer.Length - offset < count)
                 throw new ArgumentException("Invalid offset and length.");
-            int actualCount = checked((int)(Length - Position));
+            int actualCount = checked((int) (Length - Position));
             if (actualCount > count)
                 actualCount = count;
             if (actualCount <= 0)
@@ -65,8 +64,8 @@ namespace StreamingFacts
 
         public override long Position
         {
-            get => position;
-            set => throw new NotSupportedException();
+            get { return position; }
+            set {throw new NotSupportedException();}
         }
     }
 }
