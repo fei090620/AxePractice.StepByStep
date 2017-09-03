@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -71,7 +72,16 @@ namespace StreamingFacts
              * Please construct the multipart form content to contains all the files.
              */
 
-            throw new NotImplementedException();
+            var multiContents = new MultipartFormDataContent();
+            if (contentParts == null || contentParts.Length == 0) return multiContents;
+            contentParts.ToList().ForEach(partContent =>
+            {
+                var streamContent = new StreamContent(partContent.Stream);
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(partContent.ContentType);
+                multiContents.Add(streamContent, partContent.FileName, partContent.FileName);
+            });
+
+            return multiContents;
 
             #endregion
         }

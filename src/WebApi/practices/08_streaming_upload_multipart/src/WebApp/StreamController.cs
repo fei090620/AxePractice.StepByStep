@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -16,7 +18,26 @@ namespace WebApp
              * Please implement the method to retrive all the files data.
              */
 
-            throw new NotImplementedException();
+            if (!Request.Content.IsMimeMultipartContent()) return Request.CreateResponse(HttpStatusCode.BadRequest);
+
+            try
+            {
+                var responseContent = new List<string>();
+                var provider = await Request.Content.ReadAsMultipartAsync();
+                foreach (var content in provider.Contents)
+                {
+                    var fileName = content.Headers.ContentDisposition.FileName;
+                    var fileStream = content.ReadAsStringAsync();
+
+                    responseContent.Add($"{fileName}:{fileStream}");
+                }
+
+                return Request.CreateResponse(HttpStatusCode.OK, responseContent);
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            }
 
             #endregion
         }
